@@ -251,30 +251,6 @@
             border-radius: 6px;
         }
         
-        .role-selector {
-            margin-top: 10px;
-        }
-        
-        .role-selector label {
-            display: inline-block;
-            margin-right: 15px;
-            font-weight: normal;
-            font-size: 14px;
-        }
-        
-        .role-selector input[type="checkbox"] {
-            width: auto;
-            margin-right: 5px;
-        }
-        
-        .role-percentage {
-            display: inline-block;
-            width: 60px;
-            padding: 4px 8px;
-            margin-left: 5px;
-            font-size: 12px;
-        }
-        
         .total { 
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
             padding: 20px; 
@@ -562,8 +538,8 @@
     </div>
 
     <script>
-        // Base de données d'artistes (maintenant sauvée dans localStorage)
-        let database = JSON.parse(localStorage.getItem('sacemDatabase')) || [
+        // Base de données d'artistes
+        let database = [
             { id: 1, name: "VESCHAMBRE Yannick", pseudonym: "YAYA ONTHETRACK", type: "auteur-compositeur", email: "yaya@example.com", phone: "+33 1 23 45 67 89", address: "123 rue de la Musique, 75001 Paris" },
             { id: 2, name: "ALL DAY EDITION", type: "editeur", email: "contact@alldayedition.com", phone: "+33 1 98 76 54 32", address: "456 avenue des Éditeurs, 75002 Paris" },
             { id: 3, name: "432 CARATS PUBLISHING", type: "editeur", email: "info@432carats.com", phone: "+33 1 11 22 33 44", address: "789 boulevard des Droits, 75003 Paris" },
@@ -572,11 +548,6 @@
         ];
         
         let rightholders = [];
-        
-        // Sauvegarder la base dans localStorage
-        function saveDatabase() {
-            localStorage.setItem('sacemDatabase', JSON.stringify(database));
-        }
         
         // Modal management
         function openAddArtistModal() {
@@ -615,18 +586,11 @@
             };
             
             database.push(newArtist);
-            saveDatabase();
             
             // L'ajouter directement aux ayants droit
             rightholders.push({
                 ...newArtist,
-                percentage: 0,
-                roles: {
-                    auteur: 0,
-                    compositeur: 0,
-                    arrangeur: 0,
-                    adaptateur: 0
-                }
+                percentage: 0
             });
             
             updateRightholdersList();
@@ -670,13 +634,7 @@
             if (artist && !rightholders.find(r => r.id === id)) {
                 rightholders.push({
                     ...artist,
-                    percentage: 0,
-                    roles: {
-                        auteur: 0,
-                        compositeur: 0,
-                        arrangeur: 0,
-                        adaptateur: 0
-                    }
+                    percentage: 0
                 });
                 updateRightholdersList();
                 document.getElementById('search').value = '';
@@ -694,9 +652,8 @@
                 return;
             }
             
-            list.innerHTML = rightholders.map(holder => {
-                const isCreator = holder.type === 'auteur-compositeur';
-                return `<div class="rightholder">
+            list.innerHTML = rightholders.map(holder => 
+                `<div class="rightholder">
                     <div class="rightholder-header">
                         <div>
                             <div class="rightholder-name">
@@ -707,50 +664,16 @@
                         <button class="delete-btn" onclick="removeRightholder(${holder.id})">🗑️ Supprimer</button>
                     </div>
                     
-                    ${isCreator ? `
-                    <div class="role-selector">
-                        <label><input type="checkbox" onchange="toggleRole(${holder.id}, 'auteur', this.checked)"> Auteur 
-                            <input type="number" class="role-percentage" value="${holder.roles.auteur}" 
-                                   onchange="updateRolePercentage(${holder.id}, 'auteur', this.value)" min="0" max="100" step="0.1">%</label>
-                        <label><input type="checkbox" onchange="toggleRole(${holder.id}, 'compositeur', this.checked)"> Compositeur 
-                            <input type="number" class="role-percentage" value="${holder.roles.compositeur}" 
-                                   onchange="updateRolePercentage(${holder.id}, 'compositeur', this.value)" min="0" max="100" step="0.1">%</label>
-                        <label><input type="checkbox" onchange="toggleRole(${holder.id}, 'arrangeur', this.checked)"> Arrangeur 
-                            <input type="number" class="role-percentage" value="${holder.roles.arrangeur}" 
-                                   onchange="updateRolePercentage(${holder.id}, 'arrangeur', this.value)" min="0" max="100" step="0.1">%</label>
-                        <label><input type="checkbox" onchange="toggleRole(${holder.id}, 'adaptateur', this.checked)"> Adaptateur 
-                            <input type="number" class="role-percentage" value="${holder.roles.adaptateur}" 
-                                   onchange="updateRolePercentage(${holder.id}, 'adaptateur', this.value)" min="0" max="100" step="0.1">%</label>
-                    </div>
-                    ` : `
                     <div class="percentage-group">
-                        <label>Part éditeur:</label>
+                        <label>Pourcentage:</label>
                         <input type="number" class="percentage-input" value="${holder.percentage}" 
                                onchange="updatePercentage(${holder.id}, this.value)" 
                                min="0" max="100" step="0.1" placeholder="0.0">
                         <span style="font-weight: 600; color: #667eea;">%</span>
                     </div>
-                    `}
-                </div>`;
-            }).join('');
+                </div>`
+            ).join('');
             updateTotal();
-        }
-        
-        // Gérer les rôles des créateurs
-        function toggleRole(id, role, checked) {
-            const holder = rightholders.find(r => r.id === id);
-            if (holder && !checked) {
-                holder.roles[role] = 0;
-                updateRightholdersList();
-            }
-        }
-        
-        function updateRolePercentage(id, role, value) {
-            const holder = rightholders.find(r => r.id === id);
-            if (holder) {
-                holder.roles[role] = parseFloat(value) || 0;
-                updateTotal();
-            }
         }
         
         // Supprimer un ayant droit
@@ -759,7 +682,7 @@
             updateRightholdersList();
         }
         
-        // Mettre à jour le pourcentage (pour éditeurs)
+        // Mettre à jour le pourcentage
         function updatePercentage(id, value) {
             const holder = rightholders.find(r => r.id === id);
             if (holder) {
@@ -770,16 +693,7 @@
         
         // Calculer le total
         function updateTotal() {
-            let total = 0;
-            
-            rightholders.forEach(holder => {
-                if (holder.type === 'editeur') {
-                    total += holder.percentage;
-                } else {
-                    total += Object.values(holder.roles).reduce((sum, val) => sum + val, 0);
-                }
-            });
-            
+            const total = rightholders.reduce((sum, holder) => sum + holder.percentage, 0);
             const totalElement = document.getElementById('total');
             const totalPercentage = document.getElementById('total-percentage');
             
@@ -803,3 +717,227 @@
             const subtitle = document.getElementById('subtitle').value;
             const hours = document.getElementById('hours').value;
             const minutes = document.getElementById('minutes').value;
+            const seconds = document.getElementById('seconds').value;
+            const genre = document.getElementById('genre').value;
+            const date = document.getElementById('date').value;
+            const location = document.getElementById('location').value;
+            const interpreters = document.getElementById('interpreters').value;
+            const iswc = document.getElementById('iswc').value;
+            
+            const currentDate = new Date().toLocaleDateString('fr-FR');
+            const total = rightholders.reduce((sum, holder) => sum + holder.percentage, 0);
+            
+            const preview = `BULLETIN DE DÉCLARATION SACEM
+===============================================
+
+A) TITRE DE L'ŒUVRE
+Titre: ${title}
+${subtitle ? `Sous-titre: ${subtitle}` : ''}
+
+B) DÉSIGNATION DE L'ŒUVRE
+Durée: ${hours}h ${minutes}m ${seconds}s
+Genre: ${genre}
+${date ? `Date de première exploitation: ${new Date(date).toLocaleDateString('fr-FR')}` : ''}
+${location ? `Lieu ou diffuseur/exploitant: ${location}` : ''}
+${iswc ? `Code ISWC: ${iswc}` : ''}
+${interpreters ? `Interprète(s): ${interpreters}` : ''}
+
+AYANTS DROIT:
+${rightholders.map(holder => 
+    `• ${holder.name} ${holder.pseudonym ? `(${holder.pseudonym})` : ''}: ${holder.percentage}% - ${holder.type}`
+).join('\n')}
+
+TOTAL: ${total.toFixed(1)}%
+
+Date de génération: ${currentDate}
+Générateur: https://lefouch.github.io/generateur-sacem/`;
+            
+            document.getElementById('preview-content').textContent = preview;
+            document.getElementById('preview').style.display = 'block';
+        }
+        
+        // Générer le PDF SACEM (version simplifiée qui marche)
+        function generatePDF() {
+            const title = document.getElementById('title').value;
+            if (!title) {
+                alert('⚠️ Veuillez saisir un titre !');
+                return;
+            }
+            
+            if (rightholders.length === 0) {
+                alert('⚠️ Veuillez ajouter au moins un ayant droit !');
+                return;
+            }
+            
+            const total = rightholders.reduce((sum, holder) => sum + holder.percentage, 0);
+            if (total !== 100) {
+                alert(`⚠️ Le total est de ${total.toFixed(1)}%. Il doit être égal à 100%.`);
+                return;
+            }
+            
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // En-tête
+                doc.text(`Durée: ${hours}h ${minutes}m ${seconds}s`, 20, yPos);
+                yPos += 10;
+                doc.text(`Genre: ${document.getElementById('genre').value}`, 20, yPos);
+                
+                const date = document.getElementById('date').value;
+                if (date) {
+                    yPos += 10;
+                    doc.text(`Date de première exploitation: ${new Date(date).toLocaleDateString('fr-FR')}`, 20, yPos);
+                }
+                
+                const location = document.getElementById('location').value;
+                if (location) {
+                    yPos += 10;
+                    doc.text(`Lieu ou diffuseur/exploitant: ${location}`, 20, yPos);
+                }
+                
+                const iswc = document.getElementById('iswc').value;
+                if (iswc) {
+                    yPos += 10;
+                    doc.text(`Code ISWC: ${iswc}`, 20, yPos);
+                }
+                
+                const interpreters = document.getElementById('interpreters').value;
+                if (interpreters) {
+                    yPos += 10;
+                    doc.text(`Interprète(s): ${interpreters}`, 20, yPos);
+                }
+                
+                // Ayants droit
+                yPos += 25;
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text('AYANTS DROIT', 20, yPos);
+                
+                yPos += 15;
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'normal');
+                
+                rightholders.forEach((holder, index) => {
+                    if (yPos > 250) {
+                        doc.addPage();
+                        yPos = 30;
+                    }
+                    
+                    const displayName = holder.name + (holder.pseudonym ? ` (${holder.pseudonym})` : '');
+                    doc.text(`${index + 1}. ${displayName}`, 20, yPos);
+                    yPos += 8;
+                    doc.text(`   Type: ${holder.type}`, 20, yPos);
+                    yPos += 8;
+                    doc.text(`   Pourcentage: ${holder.percentage}%`, 20, yPos);
+                    yPos += 8;
+                    
+                    if (holder.email) {
+                        doc.text(`   Email: ${holder.email}`, 20, yPos);
+                        yPos += 8;
+                    }
+                    
+                    yPos += 5;
+                });
+                
+                // Total
+                yPos += 10;
+                doc.setFont(undefined, 'bold');
+                doc.text(`TOTAL: ${total.toFixed(1)}%`, 20, yPos);
+                
+                // Pied de page
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')} par le Générateur SACEM Pro`, 20, 280);
+                
+                // Sauvegarder
+                const fileName = `SACEM_${title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+                doc.save(fileName);
+                
+                alert('✅ PDF SACEM généré avec succès !');
+                
+            } catch (error) {
+                console.error('Erreur PDF:', error);
+                alert('❌ Erreur lors de la génération du PDF. Vérifiez que vous avez rempli tous les champs requis.');
+            }
+        }
+        
+        // Événements pour l'aperçu en temps réel
+        ['title', 'subtitle', 'hours', 'minutes', 'seconds', 'genre', 'date', 'location', 'interpreters', 'iswc'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('input', function() {
+                    if (document.getElementById('title').value) {
+                        generatePreview();
+                    }
+                });
+                element.addEventListener('change', function() {
+                    if (document.getElementById('title').value) {
+                        generatePreview();
+                    }
+                });
+            }
+        });
+        
+        // Cacher les suggestions quand on clique ailleurs
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.search-box')) {
+                document.getElementById('suggestions').style.display = 'none';
+            }
+        });
+        
+        // Fermer le modal en cliquant à l'extérieur
+        window.onclick = function(event) {
+            const modal = document.getElementById('artistModal');
+            if (event.target === modal) {
+                closeAddArtistModal();
+            }
+        }
+        
+        // Initialisation
+        updateRightholdersList();
+        
+        // Message de bienvenue
+        console.log('🎵 Générateur SACEM Pro chargé avec succès !');
+        console.log('✅ Toutes les fonctionnalités sont opérationnelles');
+    </script>
+</body>
+</html>setFontSize(20);
+                doc.setFont(undefined, 'bold');
+                doc.text('BULLETIN DE DÉCLARATION SACEM', 20, 30);
+                
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'normal');
+                doc.text('(pour œuvres éditées uniquement)', 20, 40);
+                
+                // Section A - Titre
+                let yPos = 60;
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text('A) TITRE DE L\'ŒUVRE', 20, yPos);
+                
+                yPos += 15;
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'normal');
+                doc.text(`Titre: ${document.getElementById('title').value}`, 20, yPos);
+                
+                const subtitle = document.getElementById('subtitle').value;
+                if (subtitle) {
+                    yPos += 10;
+                    doc.text(`Sous-titre: ${subtitle}`, 20, yPos);
+                }
+                
+                // Section B - Désignation
+                yPos += 20;
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text('B) DÉSIGNATION DE L\'ŒUVRE', 20, yPos);
+                
+                yPos += 15;
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'normal');
+                
+                const hours = document.getElementById('hours').value;
+                const minutes = document.getElementById('minutes').value;
+                const seconds = document.getElementById('seconds').value;
+                doc.
