@@ -5,39 +5,297 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Générateur SACEM</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
-        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
-        .header p { opacity: 0.9; font-size: 1.1em; }
-        .content { padding: 30px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; color: #333; }
-        input, select, textarea { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; transition: border-color 0.3s; }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; }
-        .row { display: flex; gap: 15px; }
-        .col { flex: 1; }
-        .search-box { position: relative; }
-        .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid #ddd; border-top: none; border-radius: 0 0 8px 8px; max-height: 200px; overflow-y: auto; z-index: 100; }
-        .suggestion { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; }
-        .suggestion:hover { background: #f5f5f5; }
-        .suggestion:last-child { border-bottom: none; }
-        .rightholders { margin: 20px 0; }
-        .rightholder { background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid #667eea; }
-        .rightholder-header { display: flex; justify-content: between; align-items: center; margin-bottom: 10px; }
-        .rightholder-name { font-weight: bold; flex: 1; }
-        .delete-btn { background: #e74c3c; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; }
-        .delete-btn:hover { background: #c0392b; }
-        .percentage-input { width: 80px; margin-right: 10px; }
-        .total { background: #e8f4fd; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; font-weight: bold; }
-        .total.error { background: #ffe6e6; color: #c0392b; }
-        .total.success { background: #e6ffe6; color: #27ae60; }
-        .generate-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 8px; cursor: pointer; display: block; margin: 30px auto; transition: transform 0.2s; }
-        .generate-btn:hover { transform: translateY(-2px); }
-        .preview { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px; }
-        .preview h3 { margin-bottom: 15px; color: #333; }
-        .preview-content { white-space: pre-line; font-family: monospace; font-size: 14px; }
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            min-height: 100vh; 
+            padding: 20px; 
+        }
+        
+        .container { 
+            max-width: 900px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 20px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+            overflow: hidden; 
+        }
+        
+        .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            padding: 40px; 
+            text-align: center; 
+        }
+        
+        .header h1 { 
+            font-size: 2.8em; 
+            margin-bottom: 10px; 
+            font-weight: 700;
+        }
+        
+        .header p { 
+            opacity: 0.9; 
+            font-size: 1.2em; 
+        }
+        
+        .content { 
+            padding: 40px; 
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .form-group { 
+            margin-bottom: 20px; 
+        }
+        
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 600; 
+            color: #333; 
+        }
+        
+        input, select, textarea { 
+            width: 100%; 
+            padding: 15px; 
+            border: 2px solid #e1e5e9; 
+            border-radius: 10px; 
+            font-size: 16px; 
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        input:focus, select:focus, textarea:focus { 
+            outline: none; 
+            border-color: #667eea; 
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .row { 
+            display: flex; 
+            gap: 20px; 
+        }
+        
+        .col { 
+            flex: 1; 
+        }
+        
+        .search-box { 
+            position: relative; 
+        }
+        
+        .suggestions { 
+            position: absolute; 
+            top: 100%; 
+            left: 0; 
+            right: 0; 
+            background: white; 
+            border: 2px solid #e1e5e9; 
+            border-top: none; 
+            border-radius: 0 0 10px 10px; 
+            max-height: 250px; 
+            overflow-y: auto; 
+            z-index: 1000; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .suggestion { 
+            padding: 15px; 
+            cursor: pointer; 
+            border-bottom: 1px solid #f1f1f1; 
+            transition: background-color 0.2s;
+        }
+        
+        .suggestion:hover { 
+            background: #f8f9fa; 
+        }
+        
+        .suggestion:last-child { 
+            border-bottom: none; 
+        }
+        
+        .suggestion strong {
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .suggestion small {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .rightholders { 
+            margin: 25px 0; 
+        }
+        
+        .rightholder { 
+            background: white; 
+            padding: 20px; 
+            margin: 15px 0; 
+            border-radius: 12px; 
+            border-left: 5px solid #667eea; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .rightholder-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start; 
+            margin-bottom: 15px; 
+        }
+        
+        .rightholder-name { 
+            font-weight: 600; 
+            flex: 1; 
+            color: #333;
+        }
+        
+        .rightholder-type {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .delete-btn { 
+            background: #e74c3c; 
+            color: white; 
+            border: none; 
+            padding: 8px 12px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        .delete-btn:hover { 
+            background: #c0392b; 
+        }
+        
+        .percentage-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .percentage-input { 
+            width: 100px; 
+            padding: 8px 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+        }
+        
+        .total { 
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
+            padding: 20px; 
+            border-radius: 12px; 
+            margin: 25px 0; 
+            text-align: center; 
+            font-weight: 700; 
+            font-size: 18px;
+        }
+        
+        .total.error { 
+            background: linear-gradient(135deg, #ffe6e6 0%, #ffcccc 100%); 
+            color: #c0392b; 
+        }
+        
+        .total.success { 
+            background: linear-gradient(135deg, #e6ffe6 0%, #ccffcc 100%); 
+            color: #27ae60; 
+        }
+        
+        .generate-btn { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            border: none; 
+            padding: 18px 40px; 
+            font-size: 18px; 
+            font-weight: 600;
+            border-radius: 12px; 
+            cursor: pointer; 
+            display: block; 
+            margin: 30px auto; 
+            transition: all 0.3s ease;
+        }
+        
+        .generate-btn:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .preview { 
+            background: #f8f9fa; 
+            padding: 25px; 
+            border-radius: 12px; 
+            margin-top: 25px; 
+            border: 2px solid #e1e5e9;
+        }
+        
+        .preview h3 { 
+            margin-bottom: 20px; 
+            color: #333; 
+            font-size: 1.4em;
+        }
+        
+        .preview-content { 
+            white-space: pre-line; 
+            font-family: 'Courier New', monospace; 
+            font-size: 14px; 
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        @media (max-width: 768px) {
+            .row {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .rightholder-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .content {
+                padding: 25px;
+            }
+            
+            .header {
+                padding: 30px 25px;
+            }
+            
+            .header h1 {
+                font-size: 2.2em;
+            }
+        }
     </style>
 </head>
 <body>
@@ -48,68 +306,74 @@
         </div>
         
         <div class="content">
-            <!-- Formulaire principal -->
-            <div class="form-group">
-                <label for="title">Titre de l'œuvre *</label>
-                <input type="text" id="title" placeholder="Nom de votre chanson">
-            </div>
-            
-            <div class="form-group">
-                <label for="subtitle">Sous-titre</label>
-                <input type="text" id="subtitle" placeholder="Featuring ou sous-titre">
-            </div>
-            
-            <div class="row">
-                <div class="col">
-                    <div class="form-group">
-                        <label for="minutes">Durée (minutes)</label>
-                        <input type="number" id="minutes" min="0" value="3">
+            <!-- Section informations œuvre -->
+            <div class="form-section">
+                <h2>📄 Informations sur l'œuvre</h2>
+                
+                <div class="form-group">
+                    <label for="title">Titre de l'œuvre *</label>
+                    <input type="text" id="title" placeholder="Nom de votre chanson" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="subtitle">Sous-titre</label>
+                    <input type="text" id="subtitle" placeholder="Featuring ou sous-titre">
+                </div>
+                
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="minutes">Durée (minutes)</label>
+                            <input type="number" id="minutes" min="0" value="3">
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="seconds">Secondes</label>
+                            <input type="number" id="seconds" min="0" max="59" value="30">
+                        </div>
                     </div>
                 </div>
-                <div class="col">
-                    <div class="form-group">
-                        <label for="seconds">Secondes</label>
-                        <input type="number" id="seconds" min="0" max="59" value="30">
+                
+                <div class="form-group">
+                    <label for="genre">Genre</label>
+                    <select id="genre">
+                        <option value="CHANSON">Chanson</option>
+                        <option value="RAP">Rap</option>
+                        <option value="ROCK">Rock</option>
+                        <option value="POP">Pop</option>
+                        <option value="ELECTRO">Électro</option>
+                        <option value="JAZZ">Jazz</option>
+                        <option value="CLASSIQUE">Classique</option>
+                        <option value="AUTRE">Autre</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="date">Date de première exploitation</label>
+                    <input type="date" id="date">
+                </div>
+            </div>
+            
+            <!-- Section ayants droit -->
+            <div class="form-section">
+                <h2>👥 Ayants droit</h2>
+                
+                <div class="form-group">
+                    <label>Rechercher un artiste ou éditeur</label>
+                    <div class="search-box">
+                        <input type="text" id="search" placeholder="Tapez les premières lettres...">
+                        <div id="suggestions" class="suggestions" style="display: none;"></div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="genre">Genre</label>
-                <select id="genre">
-                    <option value="CHANSON">Chanson</option>
-                    <option value="RAP">Rap</option>
-                    <option value="ROCK">Rock</option>
-                    <option value="POP">Pop</option>
-                    <option value="ELECTRO">Électro</option>
-                    <option value="JAZZ">Jazz</option>
-                    <option value="AUTRE">Autre</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="date">Date de première exploitation</label>
-                <input type="date" id="date">
-            </div>
-            
-            <!-- Recherche d'artistes -->
-            <div class="form-group">
-                <label>Rechercher un artiste ou éditeur</label>
-                <div class="search-box">
-                    <input type="text" id="search" placeholder="Tapez les premières lettres...">
-                    <div id="suggestions" class="suggestions" style="display: none;"></div>
+                
+                <div class="rightholders">
+                    <div id="rightholders-list"></div>
                 </div>
-            </div>
-            
-            <!-- Liste des ayants droit -->
-            <div class="rightholders">
-                <h3>Ayants droit</h3>
-                <div id="rightholders-list"></div>
-            </div>
-            
-            <!-- Total -->
-            <div id="total" class="total">
-                Total: <span id="total-percentage">0</span>%
+                
+                <div id="total" class="total">
+                    Total: <span id="total-percentage">0</span>%
+                </div>
             </div>
             
             <!-- Bouton génération -->
@@ -119,7 +383,7 @@
             
             <!-- Aperçu -->
             <div id="preview" class="preview" style="display: none;">
-                <h3>Aperçu du bulletin</h3>
+                <h3>📋 Aperçu du bulletin</h3>
                 <div id="preview-content" class="preview-content"></div>
             </div>
         </div>
@@ -134,7 +398,10 @@
             { id: 4, name: "MARTIN Pierre", pseudonym: "PIERRE BEAT", type: "auteur-compositeur" },
             { id: 5, name: "SOUND FACTORY", type: "editeur" },
             { id: 6, name: "DUPONT Marie", pseudonym: "MARIE MELODY", type: "auteur-compositeur" },
-            { id: 7, name: "STUDIO RECORDS", type: "editeur" }
+            { id: 7, name: "STUDIO RECORDS", type: "editeur" },
+            { id: 8, name: "BERNARD Jean", pseudonym: "DJ JEAN", type: "auteur-compositeur" },
+            { id: 9, name: "MUSIC FACTORY", type: "editeur" },
+            { id: 10, name: "LAURENT Sophie", pseudonym: "SOPHIE SOUND", type: "auteur-compositeur" }
         ];
         
         let rightholders = [];
@@ -159,7 +426,7 @@
                     `<div class="suggestion" onclick="selectArtist(${item.id})">
                         <strong>${item.name}</strong>
                         ${item.pseudonym ? `<br><small>(${item.pseudonym})</small>` : ''}
-                        <br><small>${item.type}</small>
+                        <br><small style="color: #667eea; font-weight: 600;">${item.type}</small>
                     </div>`
                 ).join('');
                 suggestions.style.display = 'block';
@@ -188,19 +455,29 @@
         // Mettre à jour la liste
         function updateRightholdersList() {
             const list = document.getElementById('rightholders-list');
+            
+            if (rightholders.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #666; font-style: italic; padding: 20px;">Aucun ayant droit ajouté</p>';
+                updateTotal();
+                return;
+            }
+            
             list.innerHTML = rightholders.map(holder => 
                 `<div class="rightholder">
                     <div class="rightholder-header">
-                        <div class="rightholder-name">
-                            ${holder.name} ${holder.pseudonym ? `(${holder.pseudonym})` : ''}
-                            <br><small>${holder.type}</small>
+                        <div>
+                            <div class="rightholder-name">
+                                ${holder.name} ${holder.pseudonym ? `(${holder.pseudonym})` : ''}
+                            </div>
+                            <div class="rightholder-type">${holder.type}</div>
                         </div>
-                        <button class="delete-btn" onclick="removeRightholder(${holder.id})">❌</button>
+                        <button class="delete-btn" onclick="removeRightholder(${holder.id})">🗑️ Supprimer</button>
                     </div>
-                    <div>
+                    <div class="percentage-group">
                         <input type="number" class="percentage-input" value="${holder.percentage}" 
-                               onchange="updatePercentage(${holder.id}, this.value)" min="0" max="100" step="0.1">
-                        <span>%</span>
+                               onchange="updatePercentage(${holder.id}, this.value)" 
+                               min="0" max="100" step="0.1" placeholder="0.0">
+                        <span style="font-weight: 600; color: #667eea;">%</span>
                     </div>
                 </div>`
             ).join('');
@@ -227,22 +504,28 @@
             const total = rightholders.reduce((sum, holder) => sum + holder.percentage, 0);
             const totalElement = document.getElementById('total');
             const totalPercentage = document.getElementById('total-percentage');
+            const generateBtn = document.querySelector('.generate-btn');
             
             totalPercentage.textContent = total.toFixed(1);
             
             if (total === 100) {
                 totalElement.className = 'total success';
+                generateBtn.disabled = false;
             } else {
                 totalElement.className = 'total error';
+                generateBtn.disabled = true;
             }
             
             updatePreview();
         }
         
-        // Aperçu
+        // Aperçu en temps réel
         function updatePreview() {
             const title = document.getElementById('title').value;
-            if (!title) return;
+            if (!title) {
+                document.getElementById('preview').style.display = 'none';
+                return;
+            }
             
             const subtitle = document.getElementById('subtitle').value;
             const minutes = document.getElementById('minutes').value;
@@ -250,21 +533,27 @@
             const genre = document.getElementById('genre').value;
             const date = document.getElementById('date').value;
             
+            const currentDate = new Date().toLocaleDateString('fr-FR');
+            const total = rightholders.reduce((sum, holder) => sum + holder.percentage, 0);
+            
             const preview = `BULLETIN DE DÉCLARATION SACEM
-=============================
+===============================================
 
 TITRE: ${title}
 ${subtitle ? `SOUS-TITRE: ${subtitle}` : ''}
-DURÉE: ${minutes}:${seconds.padStart(2, '0')}
+DURÉE: ${minutes}:${seconds.toString().padStart(2, '0')}
 GENRE: ${genre}
-${date ? `DATE D'EXPLOITATION: ${date}` : ''}
+${date ? `DATE D'EXPLOITATION: ${new Date(date).toLocaleDateString('fr-FR')}` : ''}
 
 AYANTS DROIT:
-${rightholders.map(holder => 
-    `- ${holder.name} ${holder.pseudonym ? `(${holder.pseudonym})` : ''}: ${holder.percentage}%`
-).join('\n')}
+${rightholders.length > 0 ? rightholders.map(holder => 
+    `• ${holder.name} ${holder.pseudonym ? `(${holder.pseudonym})` : ''}: ${holder.percentage}% - ${holder.type}`
+).join('\n') : 'Aucun ayant droit défini'}
 
-TOTAL: ${rightholders.reduce((sum, holder) => sum + holder.percentage, 0)}%`;
+TOTAL: ${total.toFixed(1)}%
+
+Date de génération: ${currentDate}
+Générateur: https://lefouch.github.io/generateur-sacem/`;
             
             document.getElementById('preview-content').textContent = preview;
             document.getElementById('preview').style.display = 'block';
@@ -276,37 +565,40 @@ TOTAL: ${rightholders.reduce((sum, holder) => sum + holder.percentage, 0)}%`;
             const title = document.getElementById('title').value;
             
             if (!title) {
-                alert('Veuillez saisir un titre !');
+                alert('⚠️ Veuillez saisir un titre !');
                 return;
             }
             
             if (rightholders.length === 0) {
-                alert('Veuillez ajouter au moins un ayant droit !');
+                alert('⚠️ Veuillez ajouter au moins un ayant droit !');
                 return;
             }
             
             if (total !== 100) {
-                alert(`Le total est de ${total}%. Il doit être égal à 100%.`);
+                alert(`⚠️ Le total est de ${total.toFixed(1)}%. Il doit être égal à 100%.`);
                 return;
             }
             
             const content = document.getElementById('preview-content').textContent;
-            const blob = new Blob([content], { type: 'text/plain' });
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `SACEM_${title.replace(/\s+/g, '_')}.txt`;
+            a.download = `SACEM_${title.replace(/[^a-zA-Z0-9]/g, '_')}.txt`;
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
             URL.revokeObjectURL(url);
+            
+            // Message de succès
+            alert('✅ Bulletin SACEM généré avec succès !');
         }
         
-        // Événements
-        document.getElementById('title').addEventListener('input', updatePreview);
-        document.getElementById('subtitle').addEventListener('input', updatePreview);
-        document.getElementById('minutes').addEventListener('input', updatePreview);
-        document.getElementById('seconds').addEventListener('input', updatePreview);
-        document.getElementById('genre').addEventListener('change', updatePreview);
-        document.getElementById('date').addEventListener('change', updatePreview);
+        // Événements pour l'aperçu en temps réel
+        ['title', 'subtitle', 'minutes', 'seconds', 'genre', 'date'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updatePreview);
+            document.getElementById(id).addEventListener('change', updatePreview);
+        });
         
         // Cacher les suggestions quand on clique ailleurs
         document.addEventListener('click', function(e) {
@@ -314,6 +606,9 @@ TOTAL: ${rightholders.reduce((sum, holder) => sum + holder.percentage, 0)}%`;
                 document.getElementById('suggestions').style.display = 'none';
             }
         });
+        
+        // Initialisation
+        updateRightholdersList();
     </script>
 </body>
 </html>
