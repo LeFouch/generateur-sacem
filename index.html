@@ -459,7 +459,31 @@ Date de génération: ${new Date().toLocaleDateString('fr-FR')}
 
                                     {/* Liste des ayants droit */}
                                     <div className="space-y-4">
-                                        {formData.rightHolders.map((holder) => (
+                                        {formData.exploitationDate && <div><strong>Date d'exploitation:</strong> {formData.exploitationDate}</div>}
+                                    {formData.rightHolders.length > 0 && (
+                                        <div>
+                                            <strong>Ayants droit:</strong>
+                                            <ul className="ml-4 mt-2 space-y-1">
+                                                {formData.rightHolders.map((holder) => (
+                                                    <li key={holder.id}>
+                                                        {holder.name} {holder.pseudonym && `(${holder.pseudonym})`}: {holder.percentage}% - {holder.role}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<SACEMDeclarationTool />, document.getElementById('root'));
+    </script>
+</body>
+</html>.rightHolders.map((holder) => (
                                             <div key={holder.id} className="bg-white p-4 rounded-lg border border-gray-200">
                                                 <div className="flex items-center justify-between mb-2">
                                                     <div className="flex-1">
