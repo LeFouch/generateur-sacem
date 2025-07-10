@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur SACEM</title>
+    <title>Générateur SACEM Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { 
             margin: 0; 
@@ -19,7 +20,7 @@
         }
         
         .container { 
-            max-width: 900px; 
+            max-width: 1000px; 
             margin: 0 auto; 
             background: white; 
             border-radius: 20px; 
@@ -134,14 +135,60 @@
             border-bottom: none; 
         }
         
-        .suggestion strong {
-            color: #333;
-            font-size: 16px;
+        .add-new-artist {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: all 0.3s ease;
         }
         
-        .suggestion small {
-            color: #666;
-            font-size: 14px;
+        .add-new-artist:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .close:hover {
+            color: #333;
         }
         
         .rightholders { 
@@ -204,6 +251,30 @@
             border-radius: 6px;
         }
         
+        .role-selector {
+            margin-top: 10px;
+        }
+        
+        .role-selector label {
+            display: inline-block;
+            margin-right: 15px;
+            font-weight: normal;
+            font-size: 14px;
+        }
+        
+        .role-selector input[type="checkbox"] {
+            width: auto;
+            margin-right: 5px;
+        }
+        
+        .role-percentage {
+            display: inline-block;
+            width: 60px;
+            padding: 4px 8px;
+            margin-left: 5px;
+            font-size: 12px;
+        }
+        
         .total { 
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
             padding: 20px; 
@@ -224,26 +295,42 @@
             color: #27ae60; 
         }
         
-        .generate-btn { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-            color: white; 
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .btn {
             border: none; 
-            padding: 18px 40px; 
-            font-size: 18px; 
+            padding: 18px 30px; 
+            font-size: 16px; 
             font-weight: 600;
             border-radius: 12px; 
             cursor: pointer; 
-            display: block; 
-            margin: 30px auto; 
             transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
         }
         
-        .generate-btn:hover { 
+        .btn-primary { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+        }
+        
+        .btn:hover { 
             transform: translateY(-3px); 
             box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
         }
         
-        .generate-btn:disabled {
+        .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
@@ -295,14 +382,18 @@
             .header h1 {
                 font-size: 2.2em;
             }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎵 Générateur SACEM</h1>
-            <p>Créez vos bulletins de déclaration automatiquement</p>
+            <h1>🎵 Générateur SACEM Pro</h1>
+            <p>Générez automatiquement vos PDF de déclaration SACEM</p>
         </div>
         
         <div class="content">
@@ -323,8 +414,14 @@
                 <div class="row">
                     <div class="col">
                         <div class="form-group">
-                            <label for="minutes">Durée (minutes)</label>
-                            <input type="number" id="minutes" min="0" value="3">
+                            <label for="hours">Durée (heures)</label>
+                            <input type="number" id="hours" min="0" value="0">
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="minutes">Minutes</label>
+                            <input type="number" id="minutes" min="0" max="59" value="3">
                         </div>
                     </div>
                     <div class="col">
@@ -335,29 +432,49 @@
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="genre">Genre</label>
-                    <select id="genre">
-                        <option value="CHANSON">Chanson</option>
-                        <option value="RAP">Rap</option>
-                        <option value="ROCK">Rock</option>
-                        <option value="POP">Pop</option>
-                        <option value="ELECTRO">Électro</option>
-                        <option value="JAZZ">Jazz</option>
-                        <option value="CLASSIQUE">Classique</option>
-                        <option value="AUTRE">Autre</option>
-                    </select>
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="genre">Genre</label>
+                            <select id="genre">
+                                <option value="CHANSON">Chanson</option>
+                                <option value="RAP">Rap</option>
+                                <option value="ROCK">Rock</option>
+                                <option value="POP">Pop</option>
+                                <option value="ELECTRO">Électro</option>
+                                <option value="JAZZ">Jazz</option>
+                                <option value="CLASSIQUE">Classique</option>
+                                <option value="AUTRE">Autre</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="iswc">Code ISWC</label>
+                            <input type="text" id="iswc" placeholder="T-000000000-0">
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="form-group">
                     <label for="date">Date de première exploitation</label>
                     <input type="date" id="date">
                 </div>
+                
+                <div class="form-group">
+                    <label for="location">Lieu ou diffuseur/exploitant</label>
+                    <input type="text" id="location" placeholder="Lieu de diffusion/exploitation">
+                </div>
+                
+                <div class="form-group">
+                    <label for="interpreters">Interprète(s)</label>
+                    <input type="text" id="interpreters" placeholder="Nom des interprètes">
+                </div>
             </div>
             
             <!-- Section ayants droit -->
             <div class="form-section">
-                <h2>👥 Ayants droit</h2>
+                <h2>👥 Créateurs et Éditeurs</h2>
                 
                 <div class="form-group">
                     <label>Rechercher un artiste ou éditeur</label>
@@ -365,6 +482,9 @@
                         <input type="text" id="search" placeholder="Tapez les premières lettres...">
                         <div id="suggestions" class="suggestions" style="display: none;"></div>
                     </div>
+                    <button class="add-new-artist" onclick="openAddArtistModal()">
+                        ➕ Ajouter un nouvel artiste/éditeur
+                    </button>
                 </div>
                 
                 <div class="rightholders">
@@ -376,10 +496,15 @@
                 </div>
             </div>
             
-            <!-- Bouton génération -->
-            <button class="generate-btn" onclick="generateBulletin()">
-                📄 Générer le bulletin SACEM
-            </button>
+            <!-- Boutons d'action -->
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="generatePreview()">
+                    👁️ Aperçu
+                </button>
+                <button class="btn btn-primary" onclick="generatePDF()">
+                    📄 Générer PDF SACEM
+                </button>
+            </div>
             
             <!-- Aperçu -->
             <div id="preview" class="preview" style="display: none;">
@@ -389,22 +514,126 @@
         </div>
     </div>
 
+    <!-- Modal pour ajouter un artiste -->
+    <div id="artistModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddArtistModal()">&times;</span>
+            <h2>Ajouter un nouvel artiste/éditeur</h2>
+            
+            <div class="form-group">
+                <label for="newName">Nom *</label>
+                <input type="text" id="newName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="newPseudonym">Pseudonyme</label>
+                <input type="text" id="newPseudonym">
+            </div>
+            
+            <div class="form-group">
+                <label for="newType">Type *</label>
+                <select id="newType" required>
+                    <option value="">Choisir...</option>
+                    <option value="auteur-compositeur">Auteur-Compositeur</option>
+                    <option value="editeur">Éditeur</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="newEmail">Email</label>
+                <input type="email" id="newEmail">
+            </div>
+            
+            <div class="form-group">
+                <label for="newPhone">Téléphone</label>
+                <input type="tel" id="newPhone">
+            </div>
+            
+            <div class="form-group">
+                <label for="newAddress">Adresse</label>
+                <textarea id="newAddress" rows="3"></textarea>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="closeAddArtistModal()">Annuler</button>
+                <button class="btn btn-primary" onclick="addNewArtist()">Ajouter</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Base de données d'artistes
-        const database = [
-            { id: 1, name: "VESCHAMBRE Yannick", pseudonym: "YAYA ONTHETRACK", type: "auteur-compositeur" },
-            { id: 2, name: "ALL DAY EDITION", type: "editeur" },
-            { id: 3, name: "432 CARATS PUBLISHING", type: "editeur" },
-            { id: 4, name: "MARTIN Pierre", pseudonym: "PIERRE BEAT", type: "auteur-compositeur" },
-            { id: 5, name: "SOUND FACTORY", type: "editeur" },
-            { id: 6, name: "DUPONT Marie", pseudonym: "MARIE MELODY", type: "auteur-compositeur" },
-            { id: 7, name: "STUDIO RECORDS", type: "editeur" },
-            { id: 8, name: "BERNARD Jean", pseudonym: "DJ JEAN", type: "auteur-compositeur" },
-            { id: 9, name: "MUSIC FACTORY", type: "editeur" },
-            { id: 10, name: "LAURENT Sophie", pseudonym: "SOPHIE SOUND", type: "auteur-compositeur" }
+        // Base de données d'artistes (maintenant sauvée dans localStorage)
+        let database = JSON.parse(localStorage.getItem('sacemDatabase')) || [
+            { id: 1, name: "VESCHAMBRE Yannick", pseudonym: "YAYA ONTHETRACK", type: "auteur-compositeur", email: "yaya@example.com", phone: "+33 1 23 45 67 89", address: "123 rue de la Musique, 75001 Paris" },
+            { id: 2, name: "ALL DAY EDITION", type: "editeur", email: "contact@alldayedition.com", phone: "+33 1 98 76 54 32", address: "456 avenue des Éditeurs, 75002 Paris" },
+            { id: 3, name: "432 CARATS PUBLISHING", type: "editeur", email: "info@432carats.com", phone: "+33 1 11 22 33 44", address: "789 boulevard des Droits, 75003 Paris" },
+            { id: 4, name: "MARTIN Pierre", pseudonym: "PIERRE BEAT", type: "auteur-compositeur", email: "pierre@example.com", phone: "+33 1 55 66 77 88", address: "321 rue du Rythme, 75004 Paris" },
+            { id: 5, name: "SOUND FACTORY", type: "editeur", email: "contact@soundfactory.com", phone: "+33 1 44 55 66 77", address: "654 place de la Création, 75005 Paris" }
         ];
         
         let rightholders = [];
+        
+        // Sauvegarder la base dans localStorage
+        function saveDatabase() {
+            localStorage.setItem('sacemDatabase', JSON.stringify(database));
+        }
+        
+        // Modal management
+        function openAddArtistModal() {
+            document.getElementById('artistModal').style.display = 'block';
+        }
+        
+        function closeAddArtistModal() {
+            document.getElementById('artistModal').style.display = 'none';
+            // Reset form
+            document.getElementById('newName').value = '';
+            document.getElementById('newPseudonym').value = '';
+            document.getElementById('newType').value = '';
+            document.getElementById('newEmail').value = '';
+            document.getElementById('newPhone').value = '';
+            document.getElementById('newAddress').value = '';
+        }
+        
+        // Ajouter un nouvel artiste
+        function addNewArtist() {
+            const name = document.getElementById('newName').value.trim();
+            const type = document.getElementById('newType').value;
+            
+            if (!name || !type) {
+                alert('Veuillez remplir au minimum le nom et le type !');
+                return;
+            }
+            
+            const newArtist = {
+                id: Date.now(),
+                name: name,
+                pseudonym: document.getElementById('newPseudonym').value.trim(),
+                type: type,
+                email: document.getElementById('newEmail').value.trim(),
+                phone: document.getElementById('newPhone').value.trim(),
+                address: document.getElementById('newAddress').value.trim()
+            };
+            
+            database.push(newArtist);
+            saveDatabase();
+            
+            // L'ajouter directement aux ayants droit
+            rightholders.push({
+                ...newArtist,
+                percentage: 0,
+                roles: {
+                    auteur: 0,
+                    compositeur: 0,
+                    arrangeur: 0,
+                    adaptateur: 0
+                }
+            });
+            
+            updateRightholdersList();
+            closeAddArtistModal();
+            
+            alert('✅ Artiste ajouté avec succès !');
+        }
         
         // Recherche avec autocomplétion
         document.getElementById('search').addEventListener('input', function(e) {
@@ -440,11 +669,14 @@
             const artist = database.find(a => a.id === id);
             if (artist && !rightholders.find(r => r.id === id)) {
                 rightholders.push({
-                    id: artist.id,
-                    name: artist.name,
-                    pseudonym: artist.pseudonym || '',
-                    type: artist.type,
-                    percentage: 0
+                    ...artist,
+                    percentage: 0,
+                    roles: {
+                        auteur: 0,
+                        compositeur: 0,
+                        arrangeur: 0,
+                        adaptateur: 0
+                    }
                 });
                 updateRightholdersList();
                 document.getElementById('search').value = '';
@@ -452,7 +684,7 @@
             }
         }
         
-        // Mettre à jour la liste
+        // Mettre à jour la liste des ayants droit
         function updateRightholdersList() {
             const list = document.getElementById('rightholders-list');
             
@@ -462,8 +694,9 @@
                 return;
             }
             
-            list.innerHTML = rightholders.map(holder => 
-                `<div class="rightholder">
+            list.innerHTML = rightholders.map(holder => {
+                const isCreator = holder.type === 'auteur-compositeur';
+                return `<div class="rightholder">
                     <div class="rightholder-header">
                         <div>
                             <div class="rightholder-name">
@@ -473,15 +706,51 @@
                         </div>
                         <button class="delete-btn" onclick="removeRightholder(${holder.id})">🗑️ Supprimer</button>
                     </div>
+                    
+                    ${isCreator ? `
+                    <div class="role-selector">
+                        <label><input type="checkbox" onchange="toggleRole(${holder.id}, 'auteur', this.checked)"> Auteur 
+                            <input type="number" class="role-percentage" value="${holder.roles.auteur}" 
+                                   onchange="updateRolePercentage(${holder.id}, 'auteur', this.value)" min="0" max="100" step="0.1">%</label>
+                        <label><input type="checkbox" onchange="toggleRole(${holder.id}, 'compositeur', this.checked)"> Compositeur 
+                            <input type="number" class="role-percentage" value="${holder.roles.compositeur}" 
+                                   onchange="updateRolePercentage(${holder.id}, 'compositeur', this.value)" min="0" max="100" step="0.1">%</label>
+                        <label><input type="checkbox" onchange="toggleRole(${holder.id}, 'arrangeur', this.checked)"> Arrangeur 
+                            <input type="number" class="role-percentage" value="${holder.roles.arrangeur}" 
+                                   onchange="updateRolePercentage(${holder.id}, 'arrangeur', this.value)" min="0" max="100" step="0.1">%</label>
+                        <label><input type="checkbox" onchange="toggleRole(${holder.id}, 'adaptateur', this.checked)"> Adaptateur 
+                            <input type="number" class="role-percentage" value="${holder.roles.adaptateur}" 
+                                   onchange="updateRolePercentage(${holder.id}, 'adaptateur', this.value)" min="0" max="100" step="0.1">%</label>
+                    </div>
+                    ` : `
                     <div class="percentage-group">
+                        <label>Part éditeur:</label>
                         <input type="number" class="percentage-input" value="${holder.percentage}" 
                                onchange="updatePercentage(${holder.id}, this.value)" 
                                min="0" max="100" step="0.1" placeholder="0.0">
                         <span style="font-weight: 600; color: #667eea;">%</span>
                     </div>
-                </div>`
-            ).join('');
+                    `}
+                </div>`;
+            }).join('');
             updateTotal();
+        }
+        
+        // Gérer les rôles des créateurs
+        function toggleRole(id, role, checked) {
+            const holder = rightholders.find(r => r.id === id);
+            if (holder && !checked) {
+                holder.roles[role] = 0;
+                updateRightholdersList();
+            }
+        }
+        
+        function updateRolePercentage(id, role, value) {
+            const holder = rightholders.find(r => r.id === id);
+            if (holder) {
+                holder.roles[role] = parseFloat(value) || 0;
+                updateTotal();
+            }
         }
         
         // Supprimer un ayant droit
@@ -490,7 +759,7 @@
             updateRightholdersList();
         }
         
-        // Mettre à jour le pourcentage
+        // Mettre à jour le pourcentage (pour éditeurs)
         function updatePercentage(id, value) {
             const holder = rightholders.find(r => r.id === id);
             if (holder) {
@@ -501,114 +770,36 @@
         
         // Calculer le total
         function updateTotal() {
-            const total = rightholders.reduce((sum, holder) => sum + holder.percentage, 0);
+            let total = 0;
+            
+            rightholders.forEach(holder => {
+                if (holder.type === 'editeur') {
+                    total += holder.percentage;
+                } else {
+                    total += Object.values(holder.roles).reduce((sum, val) => sum + val, 0);
+                }
+            });
+            
             const totalElement = document.getElementById('total');
             const totalPercentage = document.getElementById('total-percentage');
-            const generateBtn = document.querySelector('.generate-btn');
             
             totalPercentage.textContent = total.toFixed(1);
             
             if (total === 100) {
                 totalElement.className = 'total success';
-                generateBtn.disabled = false;
             } else {
                 totalElement.className = 'total error';
-                generateBtn.disabled = true;
             }
-            
-            updatePreview();
         }
         
-        // Aperçu en temps réel
-        function updatePreview() {
+        // Générer l'aperçu
+        function generatePreview() {
             const title = document.getElementById('title').value;
-            if (!title) {
-                document.getElementById('preview').style.display = 'none';
-                return;
-            }
-            
-            const subtitle = document.getElementById('subtitle').value;
-            const minutes = document.getElementById('minutes').value;
-            const seconds = document.getElementById('seconds').value;
-            const genre = document.getElementById('genre').value;
-            const date = document.getElementById('date').value;
-            
-            const currentDate = new Date().toLocaleDateString('fr-FR');
-            const total = rightholders.reduce((sum, holder) => sum + holder.percentage, 0);
-            
-            const preview = `BULLETIN DE DÉCLARATION SACEM
-===============================================
-
-TITRE: ${title}
-${subtitle ? `SOUS-TITRE: ${subtitle}` : ''}
-DURÉE: ${minutes}:${seconds.toString().padStart(2, '0')}
-GENRE: ${genre}
-${date ? `DATE D'EXPLOITATION: ${new Date(date).toLocaleDateString('fr-FR')}` : ''}
-
-AYANTS DROIT:
-${rightholders.length > 0 ? rightholders.map(holder => 
-    `• ${holder.name} ${holder.pseudonym ? `(${holder.pseudonym})` : ''}: ${holder.percentage}% - ${holder.type}`
-).join('\n') : 'Aucun ayant droit défini'}
-
-TOTAL: ${total.toFixed(1)}%
-
-Date de génération: ${currentDate}
-Générateur: https://lefouch.github.io/generateur-sacem/`;
-            
-            document.getElementById('preview-content').textContent = preview;
-            document.getElementById('preview').style.display = 'block';
-        }
-        
-        // Générer le bulletin
-        function generateBulletin() {
-            const total = rightholders.reduce((sum, holder) => sum + holder.percentage, 0);
-            const title = document.getElementById('title').value;
-            
             if (!title) {
                 alert('⚠️ Veuillez saisir un titre !');
                 return;
             }
             
-            if (rightholders.length === 0) {
-                alert('⚠️ Veuillez ajouter au moins un ayant droit !');
-                return;
-            }
-            
-            if (total !== 100) {
-                alert(`⚠️ Le total est de ${total.toFixed(1)}%. Il doit être égal à 100%.`);
-                return;
-            }
-            
-            const content = document.getElementById('preview-content').textContent;
-            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `SACEM_${title.replace(/[^a-zA-Z0-9]/g, '_')}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            // Message de succès
-            alert('✅ Bulletin SACEM généré avec succès !');
-        }
-        
-        // Événements pour l'aperçu en temps réel
-        ['title', 'subtitle', 'minutes', 'seconds', 'genre', 'date'].forEach(id => {
-            document.getElementById(id).addEventListener('input', updatePreview);
-            document.getElementById(id).addEventListener('change', updatePreview);
-        });
-        
-        // Cacher les suggestions quand on clique ailleurs
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.search-box')) {
-                document.getElementById('suggestions').style.display = 'none';
-            }
-        });
-        
-        // Initialisation
-        updateRightholdersList();
-    </script>
-</body>
-</html>
+            const subtitle = document.getElementById('subtitle').value;
+            const hours = document.getElementById('hours').value;
+            const minutes = document.getElementById('minutes').value;
